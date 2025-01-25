@@ -1,7 +1,18 @@
-
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
+import ProfilePage from "./pages/ProfilePage";
+
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem('metamaskAccount');
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
 
 function App()
 {
@@ -9,6 +20,16 @@ function App()
     <BrowserRouter>
     <Routes>
       <Route path="/" element={<LoginPage />} />
+      <Route path="/posts" element={
+        <ProtectedRoute>
+          <HomePage />
+        </ProtectedRoute>
+      }/>
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <ProfilePage/>
+        </ProtectedRoute>
+      }/>
     </Routes>
   </BrowserRouter>
   </div>
