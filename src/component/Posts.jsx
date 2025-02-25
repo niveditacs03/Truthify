@@ -77,8 +77,12 @@ const Post = ({ post, onDelete }) => {
               onClick={() => {
                 if(userVote === 'fake') {
                   post.votes.fake -= 1;
+                  post.votes.legitimate += 1;
                 }
-                post.votes.legitimate += 1;
+                if(userVote === null)
+                {
+                  post.votes.legitimate+=1;
+                }
                 setUserVote('legitimate');
               }}
               className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
@@ -97,8 +101,12 @@ const Post = ({ post, onDelete }) => {
               onClick={() => {
                 if(userVote === 'legitimate') {
                   post.votes.legitimate -= 1;
+                  post.votes.fake+=1;
                 }
-                post.votes.fake += 1;
+                if(userVote === null)
+                {
+                  post.votes.fake += 1;
+                }
                 setUserVote('fake');
               }}
               className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
