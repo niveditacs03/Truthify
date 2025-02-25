@@ -201,7 +201,7 @@ const PostCard = ({ post, onDelete }) => {
     const date = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp);
     return date.toLocaleDateString();
   };
- 
+
   return (
     <div className="bg-white rounded-xl shadow-card overflow-hidden">
       <div className="relative aspect-square">
