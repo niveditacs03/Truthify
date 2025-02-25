@@ -7,8 +7,9 @@ const ProfilePage = () => {
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-
+  
   // User data - In a real app, this would come from your backend
+  const DEFAULT_POST_IMAGE = "https://plus.unsplash.com/premium_photo-1740023685108-a12c27170d51?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
   const userData = {
     username: "ashiq-firoz",
     displayName: "Ashiq Firoz",
@@ -26,7 +27,7 @@ const ProfilePage = () => {
   useEffect(() => {
     loadUserPosts();
   }, []);
-
+  
   const loadUserPosts = () => {
     setLoading(true);
     
@@ -168,6 +169,7 @@ const ProfilePage = () => {
               key={post.id}
               post={post}
               onDelete={() => handleDeletePost(post.id)}
+              defaultImage={DEFAULT_POST_IMAGE}
             />
           ))}
         </div>
@@ -195,7 +197,13 @@ const ProfilePage = () => {
 };
 
 // Post Card Component
-const PostCard = ({ post, onDelete }) => {
+const PostCard = ({ post, onDelete, defaultImage }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  const handleImageError = () => {
+    setImageError(true);
+  };
+  
   const formatDate = (timestamp) => {
     // Handle both string dates and numeric timestamps
     const date = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp);
@@ -204,10 +212,11 @@ const PostCard = ({ post, onDelete }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-card overflow-hidden">
-      <div className="relative aspect-square">
-        <img
-          src={post.imageUrl}
+      <div className="relative aspect-[4/3] bg-gray-100">
+        <img 
+          src={imageError || !post.imageUrl ? defaultImage : post.imageUrl} 
           alt={post.title}
+          onError={handleImageError}
           className="w-full h-full object-cover"
         />
       </div>
