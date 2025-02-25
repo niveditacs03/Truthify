@@ -1,4 +1,3 @@
-// ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Web3 from 'web3';
@@ -24,41 +23,34 @@ const ProfilePage = () => {
     }
   };
 
-  // Mock posts data
-  const INITIAL_POSTS = [
-    {
-      id: 1,
-      imageUrl: "https://source.unsplash.com/random/800x600?blockchain",
-      title: "The Future of Blockchain Technology",
-      timestamp: "2025-01-25 16:45:00",
-      votes: { legitimate: 156, fake: 23 },
-      communityVerdict: "legitimate",
-    },
-    // Add more posts...
-  ];
-
   useEffect(() => {
     loadUserPosts();
   }, []);
 
   const loadUserPosts = () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setUserPosts(INITIAL_POSTS);
-      setLoading(false);
-    }, 1000);
+    
+    // Load posts from localStorage that were created in HomePage
+    const savedPosts = localStorage.getItem('truthifyPosts');
+    if (savedPosts) {
+      try {
+        const allPosts = JSON.parse(savedPosts);
+        // Filter posts for current user only
+        const currentUserPosts = allPosts.filter(post => post.username === userData.username);
+        setUserPosts(currentUserPosts);
+      } catch (error) {
+        console.error('Error parsing posts:', error);
+        setUserPosts([]);
+      }
+    } else {
+      setUserPosts([]);
+    }
+    
+    setLoading(false);
   };
 
   const handleLogout = async () => {
     try {
-    //   if (window.ethereum) {
-    //     // Disconnect from Web3
-    //     await window.ethereum.request({
-    //       method: "wallet_requestPermissions",
-    //       params: [{ eth_accounts: {} }],
-    //     });
-    //   }
       // Clear local storage
       localStorage.removeItem('metamaskAccount');
       // Redirect to login
@@ -69,8 +61,20 @@ const ProfilePage = () => {
   };
 
   const handleDeletePost = (postId) => {
+    // Remove from local state
     setUserPosts(userPosts.filter(post => post.id !== postId));
-    // In real app, make API call to delete post
+    
+    // Also remove from localStorage to keep data in sync
+    const savedPosts = localStorage.getItem('truthifyPosts');
+    if (savedPosts) {
+      try {
+        const allPosts = JSON.parse(savedPosts);
+        const updatedPosts = allPosts.filter(post => post.id !== postId);
+        localStorage.setItem('truthifyPosts', JSON.stringify(updatedPosts));
+      } catch (error) {
+        console.error('Error updating localStorage:', error);
+      }
+    }
   };
 
   return (
@@ -127,7 +131,7 @@ const ProfilePage = () => {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-2xl font-bold text-gray-900">{userData.stats.posts}</p>
+                  <p className="text-2xl font-bold text-gray-900">{userPosts.length || 0}</p>
                   <p className="text-sm text-gray-500">Posts</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 text-center">
@@ -173,6 +177,18 @@ const ProfilePage = () => {
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
+        
+        {!loading && userPosts.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No posts yet. Create some from the home page!</p>
+            <button
+              onClick={() => navigate('/')}
+              className="mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-lg hover:opacity-90 transition-colors"
+            >
+              Go to Home
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -180,15 +196,12 @@ const ProfilePage = () => {
 
 // Post Card Component
 const PostCard = ({ post, onDelete }) => {
-  const getBadgeColor = (verdict) => {
-    const colors = {
-      legitimate: 'border-green-500 text-green-700 bg-green-50',
-      neutral: 'border-blue-500 text-blue-700 bg-blue-50',
-      fake: 'border-red-500 text-red-700 bg-red-50'
-    };
-    return colors[verdict] || 'border-gray-300 text-gray-700 bg-gray-50';
+  const formatDate = (timestamp) => {
+    // Handle both string dates and numeric timestamps
+    const date = typeof timestamp === 'string' ? new Date(timestamp) : new Date(timestamp);
+    return date.toLocaleDateString();
   };
-
+ 
   return (
     <div className="bg-white rounded-xl shadow-card overflow-hidden">
       <div className="relative aspect-square">
@@ -197,27 +210,27 @@ const PostCard = ({ post, onDelete }) => {
           alt={post.title}
           className="w-full h-full object-cover"
         />
-        <button
-          onClick={onDelete}
-          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-        <div className={`absolute top-2 left-2 px-3 py-1 border-2 rounded-full text-sm font-medium ${getBadgeColor(post.communityVerdict)}`}>
-          {post.communityVerdict.charAt(0).toUpperCase() + post.communityVerdict.slice(1)}
-        </div>
       </div>
 
       <div className="p-4">
         <h3 className="font-medium text-gray-900 mb-2">{post.title}</h3>
+        {post.body && (
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{post.body}</p>
+        )}
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center space-x-2">
             <span>👍 {post.votes.legitimate}</span>
             <span>👎 {post.votes.fake}</span>
           </div>
-          <span>{new Date(post.timestamp).toLocaleDateString()}</span>
+          <span>{formatDate(post.timestamp)}</span>
+        </div>
+        <div className="mt-3 pt-2 border-t border-gray-100 flex justify-end">
+          <button 
+            onClick={() => onDelete(post.id)}
+            className="text-red-500 hover:text-red-700 text-sm"
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
