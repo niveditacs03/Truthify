@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
+import RegisterPage from "./pages/RegisterPage";
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem('metamaskAccount');
@@ -29,6 +30,9 @@ function App()
         <ProtectedRoute>
           <ProfilePage/>
         </ProtectedRoute>
+      }/>
+       <Route path="/register" element={
+          <RegisterPage/>
       }/>
     </Routes>
   </BrowserRouter>

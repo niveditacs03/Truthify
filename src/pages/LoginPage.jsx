@@ -36,6 +36,9 @@ function LoginPage() {
               Forgot password?
             </a>
           </div>
+            <a href="/register" className="text-sm text-blue-600 hover:text-blue-800 flex justify-center">
+              Don't have an account? Sign up
+              </a>
 
           <div className="mt-6">
             <ConnectWallet />

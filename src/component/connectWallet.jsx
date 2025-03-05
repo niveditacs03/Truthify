@@ -1,63 +1,67 @@
-import React, { useState, useEffect } from 'react';
-import Web3 from 'web3';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import Web3 from "web3";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ConnectWallet = () => {
-  const [account, setAccount] = useState(() => localStorage.getItem('metamaskAccount'));
+  const [account, setAccount] = useState(() =>
+    localStorage.getItem("metamaskAccount")
+  );
   const [web3, setWeb3] = useState(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    if (typeof window.ethereum !== 'undefined') {
+    if (typeof window.ethereum !== "undefined") {
       const web3Instance = new Web3(window.ethereum);
       setWeb3(web3Instance);
 
-      window.ethereum.on('accountsChanged', (accounts) => {
+      window.ethereum.on("accountsChanged", (accounts) => {
         if (accounts.length > 0) {
           setAccount(accounts[0]);
-          localStorage.setItem('metamaskAccount', accounts[0]);
+          localStorage.setItem("metamaskAccount", accounts[0]);
         } else {
           setAccount(null);
-          localStorage.removeItem('metamaskAccount');
-          setError('Wallet disconnected');
+          localStorage.removeItem("metamaskAccount");
+          setError("Wallet disconnected");
         }
       });
 
-      window.ethereum.on('chainChanged', () => {
+      window.ethereum.on("chainChanged", () => {
         window.location.reload();
       });
     } else {
-      setError('MetaMask is not installed. Please install MetaMask.');
+      setError("MetaMask is not installed. Please install MetaMask.");
     }
   }, []);
 
   useEffect(() => {
     // Check if already connected and on login page
-    if (localStorage.getItem('metamaskAccount') && location.pathname === '/') {
-      navigate('/posts', { replace: true });
+    if (localStorage.getItem("metamaskAccount") && location.pathname === "/") {
+      navigate("/posts", { replace: true });
     }
   }, [navigate, location]);
 
   const connectWallet = async () => {
     if (web3) {
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
         setAccount(accounts[0]);
-        localStorage.setItem('metamaskAccount', accounts[0]);
-        setError('');
-        navigate('/posts', { replace: true }); // Use replace instead of push
+        localStorage.setItem("metamaskAccount", accounts[0]);
+        setError("");
+        navigate("/posts", { replace: true }); // Use replace instead of push
       } catch (err) {
-        console.error('Error connecting to MetaMask:', err);
-        setError('Failed to connect wallet.');
+        console.error("Error connecting to MetaMask:", err);
+        setError("Failed to connect wallet.");
       }
     }
   };
 
   const disconnectWallet = () => {
     setAccount(null);
-    localStorage.removeItem('metamaskAccount');
+    localStorage.removeItem("metamaskAccount");
   };
 
   const shortenAddress = (address) => {
